@@ -31,12 +31,24 @@ export default {
     }
   },
   methods: {
+    //&&上this.scroll以避免出现scroll未挂载出现undefined的情况报错
     //经过time回到(x,y)位置
     scrollTo(x,y,time=300){
-      this.scroll.scrollTo(x,y,time)
+      this.scroll && this.scroll.scrollTo(x,y,time)
     },
+    //上拉加载更多
     finishPullUp(){
       this.scroll.finishPullUp()
+    },
+    //刷新
+    refresh(){
+      // console.log('----');
+      this.scroll && this.scroll.refresh()
+    },
+  //  记录滚动的Y值
+    getSaveY(){
+      // return this.scroll ? this.scroll.y : 0
+      return this.scroll.y
     }
   },
   mounted() {

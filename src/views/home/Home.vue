@@ -1,19 +1,23 @@
 <template>
   <div id="home">
     <nav-bar class="nav-bar"><div slot="center">购物街</div></nav-bar>
+    <tab-control v-show="isFixed"
+      :titles="['流行','新款','精选']"
+      @tabClick="tabClick"
+      ref="tabControl1" :class="{tabControl: isFixed}"></tab-control>
     <scroll class="content"
             ref="scroll"
             :probe-type="3"
             @scroll="scroll"
             :pull-up-load="true"
             @pullingUp="pullingup">
-      <home-swiper :banners="banners"></home-swiper>
+      <home-swiper :banners="banners" @swiperImgLoad="swiperImgLoad"></home-swiper>
       <recommend-view :recommends="recommends"></recommend-view>
       <feature-view />
       <tab-control
         :titles="['流行','新款','精选']"
-        class="tab-control"
-        @tabClick="tabClick"></tab-control>
+        @tabClick="tabClick"
+        ref="tabControl2"></tab-control>
       <goods-list :goods="showGoods"/>
     </scroll>
 
@@ -88,6 +92,8 @@ import TabControl from "components/content/tabcontrol/TabControl";
 import Scroll from "@/components/common/scroll/Scroll";
 
 import {getHomeMultidata,getHomeGoods} from "@/network/home";
+// import {debounce} from 'common/utils'
+import {debounce} from "@/common/utils";
 
 export default {
   name: "Home",
@@ -111,13 +117,25 @@ export default {
         'sell': {page: 0, list: []}
       },
       currentType: 'pop',
-      isShowBackTop: false
+      isShowBackTop: false,
+      tabOffset: 0,
+      isFixed: false,
+      saveY: 0
     }
   },
   computed: {
     showGoods(){
       return this.goods[this.currentType].list
     }
+  },
+  //回到在当前页面调用
+  activated() {
+    this.$refs.scroll.scrollTo(0,this.saveY,0)
+    this.$refs.scroll.refresh()
+  },
+  //离开当前页面是调用
+  deactivated() {
+    this.saveY = this.$refs.scroll.getSaveY()
   },
   //组件创建之后回调
   created() {
@@ -128,8 +146,29 @@ export default {
     this.getHomeGoods('pop')
     this.getHomeGoods('new')
     this.getHomeGoods('sell')
+
+  },
+  mounted() {
+    const refresh = debounce(this.$refs.scroll.refresh,200)
+    //以免scroll组件出现未挂载出现undefined情况报错，即将此事件在mounted钩子中使用不在created中使用
+    //监听图片加载完成之后让better-scroll重新计算整个可滚动区域(scroll)高度
+    this.$bus.$on('itemImgLoad',() => {
+      //如果第一次setTimeout还未执行，进入了第二次timer会被清空重新赋值进行第二次执行（如果加载第二次速度慢于delay refresh也会做一次刷新），
+      // 以此类推，到最后一次刷新等待delay之后就会才会进行刷新
+      refresh()
+    })
   },
   methods:{
+    //防抖函数：避免出现高频率刷新(例如多次想服务器请求会造成压力)；节流亦为同类型函数
+    // debounce(func,delay){
+    //   let timer = null
+    //   return function (...args){
+    //     if (timer) clearTimeout(timer)
+    //     timer = setTimeout(() => {
+    //       func.apply(this,args)
+    //     },delay)
+    //   }
+    // },
     //事件监听相关方法
     tabClick(index){
       // console.log(index);
@@ -141,6 +180,9 @@ export default {
         case 2: this.currentType = 'sell'
           break
       }
+      //保持两个类型选框(tabControl)选中之后页面转动之后还保持一致
+      this.$refs.tabControl1.current = index
+      this.$refs.tabControl2.current = index
     },
     backClick(){
       //监听点击回到顶部
@@ -149,11 +191,15 @@ export default {
     scroll(position){
       // console.log(position);
       this.isShowBackTop = (-position.y) > 1000
+
+      this.isFixed = (-position.y) > this.tabOffset
     },
     pullingup(){
       this.getHomeGoods(this.currentType)
-
-      this.$refs.scroll.scroll.refresh()
+      // this.$refs.scroll.refresh()
+    },
+    swiperImgLoad(){
+      this.tabOffset = this.$refs.tabControl2.$el.offsetTop
     },
     /**
      * 网络请求相关方法
@@ -185,7 +231,7 @@ export default {
 <style scoped>
   #home{
     /*因为固定定位会脱离标准流，即设置一个与导航栏相同高度的间距*/
-    padding-top: 44px;
+    /*padding-top: 44px;*/
     height: 100vh;
     position: relative;
   }
@@ -195,20 +241,23 @@ export default {
     color: #fff;
 
     /*将导航栏固定，不随页面滚动而滚动*/
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
+    /*position: fixed;*/
+    /*left: 0;*/
+    /*right: 0;*/
+    /*top: 0;*/
+    /*z-index: 9;*/
+  }
+  .tabControl{
+    position: relative;
     z-index: 9;
   }
+  /*.tab-control{*/
+  /*  !*滚动到一定位置（top）position即会改为fixed（固定），移动端可正常使用，pc端需考虑兼容问题*!*/
+  /*  position: sticky;*/
+  /*  top: 44px;*/
 
-  .tab-control{
-    /*滚动到一定位置（top）position即会改为fixed（固定），移动端可正常使用，pc端需考虑兼容问题*/
-    position: sticky;
-    top: 44px;
-
-    z-index: 9;
-  }
+  /*  z-index: 9;*/
+  /*}*/
 
   .content {
     overflow: hidden;
