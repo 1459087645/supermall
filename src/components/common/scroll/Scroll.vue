@@ -8,6 +8,9 @@
 
 <script>
 import BScroll from 'better-scroll'
+// import PullUp from '@better-scroll/pull-up'
+
+// BScroll.use(PullUp)
 
 export default {
   name: "Scroll",
@@ -47,8 +50,8 @@ export default {
     },
   //  记录滚动的Y值
     getSaveY(){
-      // return this.scroll ? this.scroll.y : 0
-      return this.scroll.y
+      return this.scroll ? this.scroll.y : 0
+      // return this.scroll.y
     }
   },
   mounted() {

@@ -24,58 +24,6 @@
 <!--    无法直接监听组件，需要加修饰符.native-->
     <back-top @click.native="backClick"  v-show="isShowBackTop"/>
 
-    <ul>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-    </ul>
   </div>
 </template>
 
@@ -132,10 +80,12 @@ export default {
   activated() {
     this.$refs.scroll.scrollTo(0,this.saveY,0)
     this.$refs.scroll.refresh()
+    console.log(this.saveY);
   },
   //离开当前页面是调用
   deactivated() {
     this.saveY = this.$refs.scroll.getSaveY()
+    console.log(this.saveY);
   },
   //组件创建之后回调
   created() {
